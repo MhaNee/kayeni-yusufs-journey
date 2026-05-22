@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, type Variants } from "framer-motion";
-import { useRef } from "react";
+import { motion, useScroll, useTransform, useReducedMotion, type Variants } from "framer-motion";
+import { useRef, createContext, useContext } from "react";
 import portrait from "@/assets/portrait.jpg";
 
 export const Route = createFileRoute("/")({
@@ -15,8 +15,18 @@ export const Route = createFileRoute("/")({
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+interface MotionCtxType {
+  reduce: boolean;
+}
+
+const MotionCtx = createContext<MotionCtxType>({ reduce: false });
+
+function useMotionCtx() {
+  return useContext(MotionCtx);
+}
+
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 1, y: 40 },
   show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } },
 };
 
@@ -25,37 +35,42 @@ const stagger: Variants = {
   show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
 };
 
-
-const SplitText = ({ text, className = "" }: { text: string; className?: string }) => (
-  <motion.span
-    className={className}
-    variants={stagger}
-    initial="hidden"
-    animate="show"
-    aria-label={text}
-  >
-    {text.split(" ").map((word, i) => (
-      <span key={i} className="inline-block overflow-hidden align-bottom mr-[0.25em]">
-        <motion.span
-          className="inline-block"
-          variants={{
-            hidden: { y: "110%", opacity: 0 },
-            show: { y: 0, opacity: 1, transition: { duration: 0.9, ease: EASE } },
-          } satisfies Variants}
-
-        >
-          {word}
-        </motion.span>
-      </span>
-    ))}
-  </motion.span>
-);
+const SplitText = ({ text, className = "" }: { text: string; className?: string }) => {
+  const { reduce } = useMotionCtx();
+  if (reduce) {
+    return <span className={className}>{text}</span>;
+  }
+  return (
+    <motion.span
+      className={className}
+      variants={stagger}
+      initial="hidden"
+      animate="show"
+      aria-label={text}
+    >
+      {text.split(" ").map((word, i) => (
+        <span key={i} className="inline-block overflow-hidden align-bottom mr-[0.25em]">
+          <motion.span
+            className="inline-block"
+            variants={{
+              hidden: { y: "110%", opacity: 0 },
+              show: { y: 0, opacity: 1, transition: { duration: 1, ease: EASE } },
+            } satisfies Variants}
+          >
+            {word}
+          </motion.span>
+        </span>
+      ))}
+    </motion.span>
+  );
+};
 
 function Hero() {
+  const { reduce } = useMotionCtx();
   const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, 100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 1]);
 
   return (
     <section ref={ref} className="relative min-h-screen flex flex-col justify-end overflow-hidden noise">
@@ -65,9 +80,9 @@ function Hero() {
       </motion.div>
 
       <motion.nav
-        initial={{ opacity: 0, y: -20 }}
+        initial={reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 0.2 }}
+        transition={{ duration: reduce ? 1.5 : 1, delay: 0.2 }}
         className="absolute top-0 left-0 right-0 flex justify-between items-center p-6 md:p-10 text-xs uppercase tracking-[0.3em] text-muted-foreground"
       >
         <span>KY — Est. Legacy</span>
@@ -76,9 +91,9 @@ function Hero() {
 
       <div className="relative px-6 md:px-16 pb-20 md:pb-32 max-w-7xl">
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={{ opacity: reduce ? 1 : 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.6 }}
+          transition={{ duration: reduce ? 1.5 : 1, delay: 0.6 }}
           className="text-xs md:text-sm uppercase tracking-[0.4em] text-primary mb-6"
         >
           A life in chapters
@@ -90,9 +105,9 @@ function Hero() {
           </span>
         </h1>
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.4 }}
+          transition={{ duration: reduce ? 1.5 : 1, delay: 1.4 }}
           className="mt-8 max-w-xl text-base md:text-lg text-muted-foreground"
         >
           Chartered accountant. Businessman. Quiet builder of unlikely ventures —
@@ -100,25 +115,28 @@ function Hero() {
         </motion.p>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        className="absolute bottom-6 right-6 md:right-10 text-[10px] uppercase tracking-[0.3em] text-muted-foreground"
-      >
-        <motion.span animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="inline-block">
-          ↓ Scroll
-        </motion.span>
-      </motion.div>
+      {!reduce && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+          className="absolute bottom-6 right-6 md:right-10 text-[10px] uppercase tracking-[0.3em] text-muted-foreground"
+        >
+          <motion.span animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 2 }} className="inline-block">
+            ↓ Scroll
+          </motion.span>
+        </motion.div>
+      )}
     </section>
   );
 }
 
 function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const { reduce } = useMotionCtx();
   return (
     <motion.section
       variants={stagger}
-      initial="hidden"
+      initial={reduce ? "show" : "hidden"}
       whileInView="show"
       viewport={{ once: true, margin: "-100px" }}
       className={`px-6 md:px-16 py-24 md:py-40 max-w-7xl mx-auto ${className}`}
@@ -173,6 +191,7 @@ const chapters = [
 ];
 
 function Timeline() {
+  const { reduce } = useMotionCtx();
   return (
     <Section>
       <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">02 — Chapters</motion.span>
@@ -185,8 +204,8 @@ function Timeline() {
           <motion.article
             key={c.title}
             variants={fadeUp}
-            whileHover={{ x: 12 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            whileHover={reduce ? undefined : { x: 12 }}
+            transition={reduce ? undefined : { type: "spring", stiffness: 200, damping: 20 }}
             className="group grid grid-cols-12 gap-4 md:gap-8 py-8 md:py-12 border-t border-border items-baseline"
           >
             <div className="col-span-12 md:col-span-2 text-xs uppercase tracking-[0.3em] text-primary">
@@ -254,14 +273,17 @@ function Footer() {
 }
 
 function Index() {
+  const shouldReduce = useReducedMotion() ?? false;
   return (
-    <main className="min-h-screen overflow-x-hidden">
-      <Hero />
-      <Bio />
-      <Stats />
-      <Timeline />
-      <Quote />
-      <Footer />
-    </main>
+    <MotionCtx.Provider value={{ reduce: shouldReduce }}>
+      <main className="min-h-screen overflow-x-hidden">
+        <Hero />
+        <Bio />
+        <Stats />
+        <Timeline />
+        <Quote />
+        <Footer />
+      </main>
+    </MotionCtx.Provider>
   );
 }
