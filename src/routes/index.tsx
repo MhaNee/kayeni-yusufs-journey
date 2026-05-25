@@ -355,12 +355,12 @@ function Quote() {
       <h2 id="quote-heading" className="sr-only">Quote</h2>
       <motion.blockquote variants={fadeUp} className="text-3xl md:text-6xl font-display font-light leading-tight max-w-5xl">
         <span aria-hidden="true" className="text-primary">"</span>
-        Numbers tell you what happened. <em className="italic text-gradient-gold">Instinct</em> tells you what's next —
+        Numbers tell you what happened. <em className="italic text-gradient-gold">Instinct</em> tells you what's next,
         whether it's a balance sheet, a brood of chicks, or a champion bloodline.
         <span aria-hidden="true" className="text-primary">"</span>
       </motion.blockquote>
       <motion.footer variants={fadeUp} className="mt-10 text-sm uppercase tracking-[0.3em] text-muted-foreground">
-        — Kayeni Yusuf
+        Kayeni Yusuf
       </motion.footer>
     </Section>
   );
@@ -369,7 +369,7 @@ function Quote() {
 function Footer() {
   return (
     <footer className="px-6 md:px-16 py-16 border-t border-border max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-      <span>© Kayeni Yusuf — A Biographical Sketch</span>
+      <span>© Kayeni Yusuf · A Biographical Sketch</span>
       <span>Crafted with care.</span>
     </footer>
   );
