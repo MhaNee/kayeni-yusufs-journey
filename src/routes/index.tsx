@@ -118,7 +118,7 @@ function Hero() {
           transition={{ duration: d.base, delay: d.delay * 8 }}
           className="mt-8 max-w-xl text-base md:text-lg text-muted-foreground"
         >
-          Chartered accountant. Businessman. Quiet builder of unlikely ventures —
+          Chartered accountant. Businessman. Quiet builder of unlikely ventures,
           from balance sheets to broiler houses to bloodlines.
         </motion.p>
       </div>
