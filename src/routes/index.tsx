@@ -281,7 +281,7 @@ function Timeline() {
   const fadeUp = useFadeUp();
   return (
     <Section ariaLabelledBy="chapters-heading">
-      <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">02 — Chapters</motion.span>
+      <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">02 · Chapters</motion.span>
       <motion.h2 id="chapters-heading" variants={fadeUp} className="mt-6 text-4xl md:text-6xl font-light max-w-3xl">
         Four lives, <em className="italic text-gradient-gold">one man.</em>
       </motion.h2>
