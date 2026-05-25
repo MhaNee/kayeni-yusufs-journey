@@ -209,7 +209,7 @@ const chapters = [
   {
     year: "KENNEL",
     title: "Foreign Dog Breeder",
-    body: "Imports and breeds pedigree foreign dogs — Boerboels, Caucasian Shepherds, German Shepherds — a passion turned premium venture.",
+    body: "Imports and breeds pedigree foreign dogs (Boerboels, Caucasian Shepherds, German Shepherds): a passion turned premium venture.",
   },
 ];
 
