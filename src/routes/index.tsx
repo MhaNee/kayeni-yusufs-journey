@@ -8,8 +8,8 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Kayeni Yusuf — Chartered Accountant & Entrepreneur" },
-      { name: "description", content: "The life, ventures, and achievements of Kayeni Yusuf — chartered accountant, businessman, and breeder." },
+      { title: "Kayeni Yusuf · Chartered Accountant & Entrepreneur" },
+      { name: "description", content: "The life, ventures, and achievements of Kayeni Yusuf: chartered accountant, businessman, and breeder." },
     ],
   }),
 });
