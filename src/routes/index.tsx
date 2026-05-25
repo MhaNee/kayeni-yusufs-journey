@@ -93,7 +93,7 @@ function Hero() {
         aria-label="Site"
         className="absolute top-0 left-0 right-0 flex justify-between items-center p-6 md:p-10 text-xs uppercase tracking-[0.3em] text-muted-foreground"
       >
-        <span>KY — Est. Legacy</span>
+        <span>KY · Est. Legacy</span>
         <span className="hidden md:block">Lagos · Nigeria</span>
       </nav>
 
