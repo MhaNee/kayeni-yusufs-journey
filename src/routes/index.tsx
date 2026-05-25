@@ -296,12 +296,38 @@ function Timeline() {
   );
 }
 
-const stats = [
-  { value: "ICAN", label: "Chartered" },
-  { value: "4+", label: "Ventures" },
-  { value: "20yr", label: "Building" },
-  { value: "∞", label: "Curiosity" },
+const stats: { to: number; suffix?: string; prefix?: string; label: string; display?: string }[] = [
+  { to: 1, label: "ICAN Chartership", display: "ICAN" },
+  { to: 4, suffix: "+", label: "Ventures" },
+  { to: 20, suffix: "yr", label: "Building" },
+  { to: 0, label: "Curiosity", display: "∞" },
 ];
+
+function Counter({ to, prefix = "", suffix = "", display }: { to: number; prefix?: string; suffix?: string; display?: string }) {
+  const { reduce } = useMotionCtx();
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const mv = useMotionValue(0);
+  const [val, setVal] = useState(0);
+
+  useEffect(() => {
+    if (display) return;
+    if (reduce) { setVal(to); return; }
+    if (!inView) return;
+    const controls = animate(mv, to, {
+      duration: 2.8,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setVal(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [inView, to, reduce, display, mv]);
+
+  return (
+    <span ref={ref} aria-label={display ?? `${prefix}${to}${suffix}`}>
+      {display ?? `${prefix}${val}${suffix}`}
+    </span>
+  );
+}
 
 function Stats() {
   const fadeUp = useFadeUp();
@@ -311,7 +337,9 @@ function Stats() {
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
         {stats.map((s) => (
           <motion.div key={s.label} variants={fadeUp} className="text-center md:text-left">
-            <div className="text-5xl md:text-7xl font-display font-light text-gradient-gold">{s.value}</div>
+            <div className="text-5xl md:text-7xl font-display font-light text-gradient-gold tabular-nums">
+              <Counter to={s.to} prefix={s.prefix} suffix={s.suffix} display={s.display} />
+            </div>
             <div className="mt-3 text-xs uppercase tracking-[0.3em] text-muted-foreground">{s.label}</div>
           </motion.div>
         ))}
