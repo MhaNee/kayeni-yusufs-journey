@@ -44,7 +44,7 @@ function useDurations() {
 
 const SplitText = ({ text, className = "" }: { text: string; className?: string }) => {
   const { reduce, mobile } = useMotionCtx();
-  // Non-animated fallback — semantic <span> with full text always visible.
+  // Non-animated fallback: semantic span with full text always visible.
   if (reduce) {
     return <span className={className}>{text}</span>;
   }
