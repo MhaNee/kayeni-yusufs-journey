@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion, useInView, useMotionValue, animate, AnimatePresence, type Variants } from "framer-motion";
 import { useRef, createContext, useContext, useState, useEffect, useId } from "react";
 import portrait from "@/assets/portrait.jpg";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -8,8 +8,8 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
-      { title: "Kayeni Yusuf — Chartered Accountant & Entrepreneur" },
-      { name: "description", content: "The life, ventures, and achievements of Kayeni Yusuf — chartered accountant, businessman, and breeder." },
+      { title: "Kayeni Yusuf · Chartered Accountant & Entrepreneur" },
+      { name: "description", content: "The life, ventures, and achievements of Kayeni Yusuf: chartered accountant, businessman, and breeder." },
     ],
   }),
 });
@@ -34,7 +34,7 @@ function useMotionCtx() {
   return useContext(MotionCtx);
 }
 
-// Duration helpers — shorter on mobile, instant when reduced.
+// Duration helpers: shorter on mobile, instant when reduced.
 function useDurations() {
   const { reduce, mobile } = useMotionCtx();
   if (reduce) return { fast: 0, base: 0, slow: 0, stagger: 0, delay: 0 };
@@ -44,7 +44,7 @@ function useDurations() {
 
 const SplitText = ({ text, className = "" }: { text: string; className?: string }) => {
   const { reduce, mobile } = useMotionCtx();
-  // Non-animated fallback — semantic <span> with full text always visible.
+  // Non-animated fallback: semantic span with full text always visible.
   if (reduce) {
     return <span className={className}>{text}</span>;
   }
@@ -93,7 +93,7 @@ function Hero() {
         aria-label="Site"
         className="absolute top-0 left-0 right-0 flex justify-between items-center p-6 md:p-10 text-xs uppercase tracking-[0.3em] text-muted-foreground"
       >
-        <span>KY — Est. Legacy</span>
+        <span>KY · Est. Legacy</span>
         <span className="hidden md:block">Lagos · Nigeria</span>
       </nav>
 
@@ -118,7 +118,7 @@ function Hero() {
           transition={{ duration: d.base, delay: d.delay * 8 }}
           className="mt-8 max-w-xl text-base md:text-lg text-muted-foreground"
         >
-          Chartered accountant. Businessman. Quiet builder of unlikely ventures —
+          Chartered accountant. Businessman. Quiet builder of unlikely ventures,
           from balance sheets to broiler houses to bloodlines.
         </motion.p>
       </div>
@@ -172,14 +172,14 @@ function Bio() {
   const fadeUp = useFadeUp();
   return (
     <Section ariaLabelledBy="bio-heading">
-      <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">01 — Portrait</motion.span>
+      <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">01 · Portrait</motion.span>
       <motion.h2 id="bio-heading" variants={fadeUp} className="mt-6 text-4xl md:text-7xl font-light max-w-4xl leading-tight">
         A man of <em className="text-gradient-gold not-italic font-normal">ledgers</em>, livestock, and long bets.
       </motion.h2>
       <motion.p variants={fadeUp} className="mt-10 max-w-2xl text-lg text-muted-foreground leading-relaxed">
         Kayeni Yusuf is a chartered accountant whose career has refused to sit
         still in a single office. Beyond the columns of debit and credit, he is
-        a serial entrepreneur — a man whose curiosity has carried him from
+        a serial entrepreneur whose curiosity has carried him from
         poultry pens at dawn to the high-strung world of imported pedigree dogs.
       </motion.p>
       <motion.p variants={fadeUp} className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
@@ -199,7 +199,7 @@ const chapters = [
   {
     year: "BUSINESS",
     title: "Entrepreneur & Operator",
-    body: "Founded and managed multiple enterprises across consulting, trade, and agribusiness — bringing accounting rigor to industries that rarely see it.",
+    body: "Founded and managed multiple enterprises across consulting, trade, and agribusiness, bringing accounting rigor to industries that rarely see it.",
   },
   {
     year: "FARM",
@@ -209,7 +209,7 @@ const chapters = [
   {
     year: "KENNEL",
     title: "Foreign Dog Breeder",
-    body: "Imports and breeds pedigree foreign dogs — Boerboels, Caucasian Shepherds, German Shepherds — a passion turned premium venture.",
+    body: "Imports and breeds pedigree foreign dogs (Boerboels, Caucasian Shepherds, German Shepherds): a passion turned premium venture.",
   },
 ];
 
@@ -281,7 +281,7 @@ function Timeline() {
   const fadeUp = useFadeUp();
   return (
     <Section ariaLabelledBy="chapters-heading">
-      <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">02 — Chapters</motion.span>
+      <motion.span variants={fadeUp} className="text-xs uppercase tracking-[0.4em] text-primary">02 · Chapters</motion.span>
       <motion.h2 id="chapters-heading" variants={fadeUp} className="mt-6 text-4xl md:text-6xl font-light max-w-3xl">
         Four lives, <em className="italic text-gradient-gold">one man.</em>
       </motion.h2>
@@ -296,12 +296,38 @@ function Timeline() {
   );
 }
 
-const stats = [
-  { value: "ICAN", label: "Chartered" },
-  { value: "4+", label: "Ventures" },
-  { value: "20yr", label: "Building" },
-  { value: "∞", label: "Curiosity" },
+const stats: { to: number; suffix?: string; prefix?: string; label: string; display?: string }[] = [
+  { to: 1, label: "ICAN Chartership", display: "ICAN" },
+  { to: 4, suffix: "+", label: "Ventures" },
+  { to: 20, suffix: "yr", label: "Building" },
+  { to: 0, label: "Curiosity", display: "∞" },
 ];
+
+function Counter({ to, prefix = "", suffix = "", display }: { to: number; prefix?: string; suffix?: string; display?: string }) {
+  const { reduce } = useMotionCtx();
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const mv = useMotionValue(0);
+  const [val, setVal] = useState(0);
+
+  useEffect(() => {
+    if (display) return;
+    if (reduce) { setVal(to); return; }
+    if (!inView) return;
+    const controls = animate(mv, to, {
+      duration: 2.8,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setVal(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [inView, to, reduce, display, mv]);
+
+  return (
+    <span ref={ref} aria-label={display ?? `${prefix}${to}${suffix}`}>
+      {display ?? `${prefix}${val}${suffix}`}
+    </span>
+  );
+}
 
 function Stats() {
   const fadeUp = useFadeUp();
@@ -311,7 +337,9 @@ function Stats() {
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-12">
         {stats.map((s) => (
           <motion.div key={s.label} variants={fadeUp} className="text-center md:text-left">
-            <div className="text-5xl md:text-7xl font-display font-light text-gradient-gold">{s.value}</div>
+            <div className="text-5xl md:text-7xl font-display font-light text-gradient-gold tabular-nums">
+              <Counter to={s.to} prefix={s.prefix} suffix={s.suffix} display={s.display} />
+            </div>
             <div className="mt-3 text-xs uppercase tracking-[0.3em] text-muted-foreground">{s.label}</div>
           </motion.div>
         ))}
@@ -327,12 +355,12 @@ function Quote() {
       <h2 id="quote-heading" className="sr-only">Quote</h2>
       <motion.blockquote variants={fadeUp} className="text-3xl md:text-6xl font-display font-light leading-tight max-w-5xl">
         <span aria-hidden="true" className="text-primary">"</span>
-        Numbers tell you what happened. <em className="italic text-gradient-gold">Instinct</em> tells you what's next —
+        Numbers tell you what happened. <em className="italic text-gradient-gold">Instinct</em> tells you what's next,
         whether it's a balance sheet, a brood of chicks, or a champion bloodline.
         <span aria-hidden="true" className="text-primary">"</span>
       </motion.blockquote>
       <motion.footer variants={fadeUp} className="mt-10 text-sm uppercase tracking-[0.3em] text-muted-foreground">
-        — Kayeni Yusuf
+        Kayeni Yusuf
       </motion.footer>
     </Section>
   );
@@ -341,7 +369,7 @@ function Quote() {
 function Footer() {
   return (
     <footer className="px-6 md:px-16 py-16 border-t border-border max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-6 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-      <span>© Kayeni Yusuf — A Biographical Sketch</span>
+      <span>© Kayeni Yusuf · A Biographical Sketch</span>
       <span>Crafted with care.</span>
     </footer>
   );
@@ -363,9 +391,72 @@ function MotionToggle() {
   );
 }
 
+function Splash({ onDone, reduce }: { onDone: () => void; reduce: boolean }) {
+  const mv = useMotionValue(0);
+  const [pct, setPct] = useState(0);
+
+  useEffect(() => {
+    if (reduce) {
+      setPct(100);
+      const t = setTimeout(onDone, 250);
+      return () => clearTimeout(t);
+    }
+    const controls = animate(mv, 100, {
+      duration: 2.6,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setPct(Math.round(v)),
+      onComplete: () => setTimeout(onDone, 450),
+    });
+    return () => controls.stop();
+  }, [mv, onDone, reduce]);
+
+  return (
+    <motion.div
+      role="status"
+      aria-label="Loading"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, transition: { duration: 0.6, ease: EASE } }}
+      className="fixed inset-0 z-[100] bg-background flex flex-col justify-between p-6 md:p-10 noise"
+    >
+      <div className="flex justify-between items-center text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+        <span>KY · Est. Legacy</span>
+        <span>Loading</span>
+      </div>
+
+      <div className="flex flex-col items-start gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE }}
+          className="text-5xl md:text-8xl font-display font-light leading-none"
+        >
+          <span className="block text-muted-foreground">Kayeni</span>
+          <span className="block text-gradient-gold italic">Yusuf.</span>
+        </motion.div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between items-baseline text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+          <span>A life in chapters</span>
+          <span className="tabular-nums text-foreground text-2xl md:text-3xl font-display">
+            {String(pct).padStart(3, "0")}
+          </span>
+        </div>
+        <div className="h-px w-full bg-border overflow-hidden">
+          <motion.div
+            style={{ width: `${pct}%` }}
+            className="h-full bg-gradient-to-r from-primary to-primary/40"
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Index() {
   const systemReduce = useReducedMotion() ?? false;
   const [userOverride, setUserOverride] = useState<boolean | null>(null);
+  const [splashDone, setSplashDone] = useState(false);
 
   // Initialize from localStorage
   useEffect(() => {
@@ -389,6 +480,9 @@ function Index() {
 
   return (
     <MotionCtx.Provider value={{ reduce, mobile, toggleReduce, userOverride }}>
+      <AnimatePresence>
+        {!splashDone && <Splash key="splash" onDone={() => setSplashDone(true)} reduce={reduce} />}
+      </AnimatePresence>
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-background focus:text-foreground focus:border focus:border-border focus:rounded-sm"
